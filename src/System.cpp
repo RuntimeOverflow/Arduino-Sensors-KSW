@@ -14,6 +14,9 @@ SensorDescriptor (*sensorDescriptors[])(void) = {MHZ19XSensor::getDescriptor, BM
 ActuatorDescriptor (*actuatorDescriptors[])(void) = {ScreenActuator::getDescriptor, BeepActuator::getDescriptor, LightActuator::getDescriptor};
 #define ACTUATOR_COUNT std::size(actuatorDescriptors)
 
+DisplayModuleDescriptor (*displayModuleDescriptors[])(void) = {TemperatureDisplayModule::getDescriptor};
+extern const unsigned DISPLAY_MODULE_COUNT = std::size(displayModuleDescriptors);
+
 static struct {
 	Sensor **sensorMap = nullptr;
 	ValueProvider<> **providerMap = nullptr;

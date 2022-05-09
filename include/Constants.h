@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-// -------- Network -------- \\;
+// -------- GLOBAL -------- \\;
 
 #define VERSION 1
 
@@ -10,7 +10,7 @@
 
 #define WIFI_SSID "EDU"
 #define SERVER_IP "10.98.20.16"
-//#define UDP_PORT 1337
+#define UDP_PORT 1337
 #define HTTP_PORT 80
 
 // -------- Measurement Types -------- \\;

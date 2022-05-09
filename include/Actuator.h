@@ -4,6 +4,7 @@
 #include <U8g2lib.h>
 
 #include "Constants.h"
+#include "DisplayModule.h"
 #include "Errors.h"
 #include "ValueProvider.h"
 
@@ -19,7 +20,6 @@ public:
 };
 
 class Actuator {
-private:
 public:
 	ActuatorDescriptor descriptor;
 
@@ -28,7 +28,6 @@ public:
 	static ActuatorDescriptor getDescriptor(void);
 
 	virtual Error initialize(void);
-
 	virtual Error actuate(RequestedValueProviders providers);
 };
 
@@ -43,6 +42,9 @@ private:
 	U8G2_SSD1306_64X48_ER_F_HW_I2C *u8g2;
 	bool displayInverted = false;
 	uint32_t lastDisplayInversion = 0;
+
+	Screen **screens = nullptr;
+	unsigned screenCount = 0;
 
 public:
 	static ActuatorDescriptor getDescriptor(void);

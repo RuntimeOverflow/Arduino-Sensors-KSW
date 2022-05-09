@@ -5,6 +5,9 @@
 #include "Constants.h"
 #include "Icons.h"
 
+extern DisplayModuleDescriptor (*displayModuleDescriptors[])(void);
+extern const unsigned DISPLAY_MODULE_COUNT;
+
 Actuator *ActuatorDescriptor::create() {
 	if(!_create) return nullptr;
 
@@ -14,7 +17,7 @@ Actuator *ActuatorDescriptor::create() {
 	return actuator;
 }
 
-Actuator::~Actuator(){};
+Actuator::~Actuator() = default;
 
 ActuatorDescriptor Actuator::getDescriptor(void) {
 	ActuatorDescriptor descriptor;
@@ -60,7 +63,16 @@ ActuatorDescriptor ScreenActuator::getDescriptor(void) {
 	};
 
 	descriptor.getOptionalValueTypes = [](void) -> ValueTypeFlags {
-		return VT_CO2 | VT_TEMPERATURE;
+		ValueTypeFlags flags = VT_NONE;
+
+		for(unsigned i = 0; i < DISPLAY_MODULE_COUNT; i++) {
+			DisplayModuleDescriptor desc = displayModuleDescriptors[i]();
+
+			flags |= desc.getOptionalValueTypes();
+			flags |= desc.getRequiredValueTypes();
+		}
+
+		return flags;
 	};
 
 	return descriptor;
@@ -69,6 +81,9 @@ ActuatorDescriptor ScreenActuator::getDescriptor(void) {
 ScreenActuator::~ScreenActuator() {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+	for(unsigned i = 0; i < screenCount; i++) delete screens[i];
+	delete[] screens;
+
 	delete u8g2;
 #pragma GCC diagnostic pop
 }
@@ -85,27 +100,51 @@ Error ScreenActuator::initialize(void) {
 }
 
 Error ScreenActuator::actuate(RequestedValueProviders providers) {
-	temperature_t *temp = providers[valueTypeToIndex(VT_TEMPERATURE)]->as<temperature_t>()->value();
-	// co2_t* co2 = providers[valueTypeToIndex(VT_CO2)]->as<co2_t>()->value();
+	if(!screenCount) {
+		Screen *all_screens[DISPLAY_MODULE_COUNT];
+
+		for(unsigned i = 0; i < DISPLAY_MODULE_COUNT; i++) {
+			DisplayModuleDescriptor desc = displayModuleDescriptors[i]();
+			ValueTypeFlags required = desc.getRequiredValueTypes();
+			bool satified = true;
+
+			while(required) {
+				ValueTypeIndex providerIndex = valueTypeToIndex((ValueType)required);
+
+				if(!providers[providerIndex]) {
+					satified = false;
+					break;
+				}
+
+				required &= (ValueTypeFlags)~indexToValueType(providerIndex);
+			}
+
+			if(satified) {
+				all_screens[screenCount] = new Screen(u8g2, desc.create());
+				screenCount++;
+			}
+		}
+
+		screens = new Screen *[screenCount];
+		memcpy(screens, all_screens, sizeof(Screen *) * screenCount);
+	}
 
 	u8g2->clearBuffer();
 
-	if(temp) {
-		u8g2->drawXBMP(48, 0, 16, 32, icon_temperature);
-		u8g2->setCursor(0, u8g2->getAscent());
-		u8g2->print(*temp);
-		u8g2->print(" °C");
-	} else {
-		u8g2->setCursor(0, u8g2->getAscent());
-		u8g2->print("Loading...");
-	}
+	if(screenCount > 0) {
+		screens[0]->draw(providers);
 
-	u8g2->setCursor(0, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-	u8g2->print("<");
-	u8g2->setCursor(32 - u8g2->getStrWidth("Temperature") / 2, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-	u8g2->print("Temperature");
-	u8g2->setCursor(64 - u8g2->getStrWidth(">"), 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-	u8g2->print(">");
+		u8g2->setCursor(0, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
+		u8g2->print("<");
+
+		if(screens[0]->title) {
+			u8g2->setCursor(32 - u8g2->getStrWidth(screens[0]->title) / 2, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
+			u8g2->print(screens[0]->title);
+		}
+
+		u8g2->setCursor(64 - u8g2->getStrWidth(">"), 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
+		u8g2->print(">");
+	}
 
 	u8g2->sendBuffer();
 
