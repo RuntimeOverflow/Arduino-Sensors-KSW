@@ -1,3 +1,5 @@
+include/Credentials.h
+
 **/*.ignore
 **/node_modules
 
