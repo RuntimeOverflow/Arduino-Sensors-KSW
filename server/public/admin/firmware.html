@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+		<title>Firmware</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		
+		<script>
+			window.onload = () => {
+				document.getElementById('upload_button').onclick = upload;
+			}
+			
+			const upload = () => {
+				const version = document.getElementById('version_field').value
+				if(!/^[0-9]+$/.test(version) || isNaN(parseInt(version)) || !document.getElementById('file_selector').files[0]) return
+				
+				const reader = new FileReader()
+				reader.readAsArrayBuffer(document.getElementById('file_selector').files[0])
+				reader.onload = event => {
+					const http = new XMLHttpRequest()
+					http.open('POST', `/admin/firmware?version=${version}`, true)
+					http.send(event.target.result)
+				}
+			}
+		</script>
+	</head>
+	
+	<body>
+		<input id="version_field" type="number" />
+		<input id="file_selector" type="file" />
+		<button id="upload_button">Upload</button>
+	</body>
+</html>
