@@ -153,6 +153,7 @@ Error ScreenActuator::actuate(RequestedValueProviders providers) {
 // -------- BeepActuator -------- \\;
 
 BeepActuator::~BeepActuator() {
+	// TODO: Properly clean
 	if(callback) callback();
 }
 
@@ -227,8 +228,7 @@ void BeepActuator::beep(uint32_t frequency, unsigned count) {
 		ticker.once_ms(BEEP_DURATION, callback);
 	});
 
-	// TODO: Remove false
-	if(!ticker.active() && false) {
+	if(!ticker.active()) {
 		beepsLeft = count;
 
 		(**tickerCallback)();

@@ -87,6 +87,7 @@ int16_t MHZ19XSensor::readCO2(void) {
 }
 
 bool MHZ19XSensor::isReady(void) {
+	// TODO: Reduce warmup time
 	return mhz19x.isReady() && !mhz19x.isWarmingUp();
 }
 
