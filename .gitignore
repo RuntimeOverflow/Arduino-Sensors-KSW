@@ -1,4 +1,5 @@
 include/Credentials.h
+server/firmwares
 
 **/*.ignore
 **/node_modules
