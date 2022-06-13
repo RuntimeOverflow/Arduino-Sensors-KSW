@@ -9,6 +9,7 @@
 #include <SoftwareSerial.h>
 #pragma GCC diagnostic pop
 
+#include "Constants.h"
 #include "Errors.h"
 #include "ValueProvider.h"
 
@@ -43,8 +44,8 @@ public:
 
 class MHZ19XSensor : public Sensor {
 private:
-	SoftwareSerial *mhzSerial = nullptr;
-	ErriezMHZ19B *mhz19x = nullptr;
+	SoftwareSerial mhzSerial;
+	ErriezMHZ19B mhz19x;
 
 	int16_t readCO2(void);
 	bool isReady(void);
@@ -53,6 +54,7 @@ public:
 	static SensorDescriptor getDescriptor(void);
 
 	virtual ~MHZ19XSensor();
+	MHZ19XSensor() : mhzSerial(MHZ19X_TX_PIN, MHZ19X_RX_PIN), mhz19x(&mhzSerial){};
 
 	virtual Error initialize(void);
 	virtual ValueProvider<> *getProviderForValueType(ValueType value);
@@ -62,7 +64,7 @@ public:
 
 class BME280Sensor : public Sensor {
 private:
-	Adafruit_BME280 *bme;
+	Adafruit_BME280 bme;
 
 	float readPressure(void);
 	float readAltitude(void);
@@ -72,8 +74,6 @@ private:
 public:
 	static SensorDescriptor getDescriptor(void);
 
-	virtual ~BME280Sensor();
-
 	virtual Error initialize(void);
 	virtual ValueProvider<> *getProviderForValueType(ValueType value);
 };
@@ -82,15 +82,13 @@ public:
 
 class SHT31Sensor : public Sensor {
 private:
-	Adafruit_SHT31 *sht31;
+	Adafruit_SHT31 sht31;
 
 	float readTemperature(void);
 	float readHumidity(void);
 
 public:
 	static SensorDescriptor getDescriptor(void);
-
-	virtual ~SHT31Sensor();
 
 	virtual Error initialize(void);
 	virtual ValueProvider<> *getProviderForValueType(ValueType value);
@@ -100,15 +98,13 @@ public:
 
 class SHTC3Sensor : public Sensor {
 private:
-	Adafruit_SHTC3 *shtc3;
+	Adafruit_SHTC3 shtc3;
 
 	float readTemperature(void);
 	float readHumidity(void);
 
 public:
 	static SensorDescriptor getDescriptor(void);
-
-	virtual ~SHTC3Sensor();
 
 	virtual Error initialize(void);
 	virtual ValueProvider<> *getProviderForValueType(ValueType value);

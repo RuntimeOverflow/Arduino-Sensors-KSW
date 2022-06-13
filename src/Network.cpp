@@ -3,6 +3,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 #include <U8g2lib.h>  //TODO: Remove
+#include <alloca.h>
 #include <string.h>
 
 #include "Constants.h"
@@ -49,7 +50,7 @@ void Network::disconnect() {
 	return status ? E_OK : E_FAILED_TO_SEND;
 }*/
 
-/*Error Network::sendMulticastPacket(char const *address, unsigned port, char const *msg, size_t length) {
+Error Network::sendMulticastPacket(char const *address, unsigned port, char const *msg, size_t length) {
 	if(length == UINT_MAX) length = strlen(msg);
 
 	IPAddress addr;
@@ -59,7 +60,7 @@ void Network::disconnect() {
 	bool status = udp.endPacket();
 
 	return status ? E_OK : E_FAILED_TO_SEND;
-}*/
+}
 
 bool Network::isUpdateAvailable() {
 #define xstr(s) str(s)
@@ -71,7 +72,7 @@ bool Network::isUpdateAvailable() {
 	WiFiClient client;
 	HTTPClient http;
 
-	http.begin(client, SERVER_IP, HTTP_PORT, "/check_update?version=" + version);
+	http.begin(client, SERVER_IP, HTTP_PORT, "/api/sensors/check_update?version=" + version);
 	http.GET();
 
 	bool hasUpdate = http.getString().toInt();
@@ -85,7 +86,7 @@ void Network::updateFirmware() {
 	WiFiClient client;
 	HTTPClient http;
 
-	http.begin(client, SERVER_IP, HTTP_PORT, "/arduino.bin");
+	http.begin(client, SERVER_IP, HTTP_PORT, "/api/sensors/firmware");
 	http.GET();
 
 	Update.begin(http.getSize());
@@ -106,7 +107,7 @@ void Network::updateFirmware() {
 
 		unsigned progress = roundf(current / (double)total * 100);
 		unsigned digits = 1 + (progress >= 10) + (progress >= 100);
-		char *progressStr = new char[4 + digits];
+		char *progressStr = (char *)alloca((4 + digits) * sizeof(char));
 
 		progressStr[0] = '[';
 		snprintf(progressStr + 1, digits + 1, "%u", progress);
@@ -118,8 +119,6 @@ void Network::updateFirmware() {
 		u8g2.print(progressStr);
 
 		u8g2.sendBuffer();
-
-		delete progressStr;
 	});
 
 	Update.writeStream(http.getStream());

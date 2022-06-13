@@ -56,24 +56,19 @@ SensorDescriptor MHZ19XSensor::getDescriptor(void) {
 }
 
 MHZ19XSensor::~MHZ19XSensor() {
-	delete mhz19x;
-	mhzSerial->end();
-	delete mhzSerial;
+	mhzSerial.end();
 }
 
 Error MHZ19XSensor::initialize(void) {
-	mhzSerial = new SoftwareSerial(MHZ19X_TX_PIN, MHZ19X_RX_PIN);
-	mhz19x = new ErriezMHZ19B(mhzSerial);
-
-	mhzSerial->begin(9600);
+	mhzSerial.begin(9600);
 
 	bool detected = false;
 	unsigned char counter = 0;
-	while(!(detected = mhz19x->detect()) && (counter++) < 10) delay(500);
+	while(!(detected = mhz19x.detect()) && (counter++) < 10) delay(500);
 	if(!detected) return E_NOT_FOUND;
 
-	mhz19x->setRange5000ppm();
-	mhz19x->setAutoCalibration(true);
+	mhz19x.setRange5000ppm();
+	mhz19x.setAutoCalibration(true);
 
 	return E_OK;
 }
@@ -88,11 +83,11 @@ ValueProvider<> *MHZ19XSensor::getProviderForValueType(ValueType value) {
 }
 
 int16_t MHZ19XSensor::readCO2(void) {
-	return mhz19x->readCO2();
+	return mhz19x.readCO2();
 }
 
 bool MHZ19XSensor::isReady(void) {
-	return mhz19x->isReady() && !mhz19x->isWarmingUp();
+	return mhz19x.isReady() && !mhz19x.isWarmingUp();
 }
 
 // -------- BMESensor -------- \\;
@@ -111,14 +106,8 @@ SensorDescriptor BME280Sensor::getDescriptor(void) {
 	return descriptor;
 }
 
-BME280Sensor::~BME280Sensor() {
-	delete bme;
-}
-
 Error BME280Sensor::initialize(void) {
-	bme = new Adafruit_BME280;
-
-	if(!bme->begin(0x76)) return E_GENERIC;
+	if(!bme.begin(0x76)) return E_GENERIC;
 
 	return E_OK;
 }
@@ -139,19 +128,19 @@ ValueProvider<> *BME280Sensor::getProviderForValueType(ValueType value) {
 }
 
 float BME280Sensor::readPressure(void) {
-	return bme->readPressure();
+	return bme.readPressure();
 }
 
 float BME280Sensor::readAltitude(void) {
-	return bme->readAltitude(SEALEVELPRESSURE_HPA);
+	return bme.readAltitude(SEALEVELPRESSURE_HPA);
 }
 
 float BME280Sensor::readTemperature(void) {
-	return bme->readTemperature();
+	return bme.readTemperature();
 }
 
 float BME280Sensor::readHumidity(void) {
-	return bme->readHumidity();
+	return bme.readHumidity();
 }
 
 // -------- SHT31Sensor -------- \\;
@@ -170,14 +159,8 @@ SensorDescriptor SHT31Sensor::getDescriptor(void) {
 	return descriptor;
 }
 
-SHT31Sensor::~SHT31Sensor() {
-	delete sht31;
-}
-
 Error SHT31Sensor::initialize(void) {
-	sht31 = new Adafruit_SHT31;
-
-	if(!sht31->begin(0x44)) return E_GENERIC;
+	if(!sht31.begin(0x44)) return E_GENERIC;
 
 	return E_OK;
 }
@@ -194,11 +177,11 @@ ValueProvider<> *SHT31Sensor::getProviderForValueType(ValueType value) {
 }
 
 float SHT31Sensor::readTemperature(void) {
-	return sht31->readTemperature();
+	return sht31.readTemperature();
 }
 
 float SHT31Sensor::readHumidity(void) {
-	return sht31->readHumidity();
+	return sht31.readHumidity();
 }
 
 // -------- SHTC3Sensor -------- \\;
@@ -217,14 +200,8 @@ SensorDescriptor SHTC3Sensor::getDescriptor(void) {
 	return descriptor;
 }
 
-SHTC3Sensor::~SHTC3Sensor() {
-	delete shtc3;
-}
-
 Error SHTC3Sensor::initialize(void) {
-	shtc3 = new Adafruit_SHTC3;
-
-	if(!shtc3->begin()) return E_GENERIC;
+	if(!shtc3.begin()) return E_GENERIC;
 
 	return E_OK;
 }
@@ -242,14 +219,14 @@ ValueProvider<> *SHTC3Sensor::getProviderForValueType(ValueType value) {
 
 float SHTC3Sensor::readTemperature(void) {
 	sensors_event_t temperature;
-	shtc3->getEvent(nullptr, &temperature);
+	shtc3.getEvent(nullptr, &temperature);
 
 	return temperature.temperature;
 }
 
 float SHTC3Sensor::readHumidity(void) {
 	sensors_event_t humidity;
-	shtc3->getEvent(&humidity, nullptr);
+	shtc3.getEvent(&humidity, nullptr);
 
 	return humidity.relative_humidity;
 }

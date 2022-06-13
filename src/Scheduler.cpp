@@ -1,8 +1,10 @@
 #include "Scheduler.h"
 
+#include <alloca.h>
+
 SensorMapGenerationOutput generateSensorMap(Sensor *sensors[], int count, ValueTypeFlags neededFlags) {
 	ValueTypeFlags flags = VT_NONE;
-	bool *usedMap = new bool[count];
+	bool *usedMap = (bool *)alloca(count * sizeof(bool));
 
 	SensorMapGenerationOutput output;
 	output.sensorMap = new Sensor *[VT_INDEXED_ARRAY_COUNT];
@@ -49,13 +51,11 @@ SensorMapGenerationOutput generateSensorMap(Sensor *sensors[], int count, ValueT
 		if(!usedMap[i]) output.unusedSensors[unusedIndex++] = sensors[i];
 	output.unusedSensorsLength = unusedIndex;
 
-	delete[] usedMap;
-
 	return output;
 }
 
 FilteredActuators getAvailableActuatorsForSensorMap(Actuator *actuators[], int count, Sensor **sensorMap) {
-	bool *matchMap = new bool[count];
+	bool *matchMap = (bool *)alloca(count * sizeof(bool));
 	int availableActuatorCount = 0;
 
 	struct FilteredActuators filtered;
@@ -97,8 +97,6 @@ FilteredActuators getAvailableActuatorsForSensorMap(Actuator *actuators[], int c
 		if(matchMap[i]) filtered.matchingActuators[availableIndex++] = actuators[i];
 		else filtered.rejectedActuators[unavailableIndex++] = actuators[i];
 	}
-
-	delete[] matchMap;
 
 	return filtered;
 }

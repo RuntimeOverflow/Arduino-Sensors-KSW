@@ -79,22 +79,15 @@ ActuatorDescriptor ScreenActuator::getDescriptor(void) {
 }
 
 ScreenActuator::~ScreenActuator() {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
 	for(unsigned i = 0; i < screenCount; i++) delete screens[i];
 	delete[] screens;
-
-	delete u8g2;
-#pragma GCC diagnostic pop
 }
 
 Error ScreenActuator::initialize(void) {
-	u8g2 = new U8G2_SSD1306_64X48_ER_F_HW_I2C(U8G2_R0);
+	if(!u8g2.begin()) return E_NO_ACTUATOR;
 
-	if(!u8g2->begin()) return E_NO_ACTUATOR;
-
-	u8g2->enableUTF8Print();
-	u8g2->setFont(u8g2_font_tom_thumb_4x6_tf);
+	u8g2.enableUTF8Print();
+	u8g2.setFont(u8g2_font_tom_thumb_4x6_tf);
 
 	return E_OK;
 }
@@ -120,7 +113,7 @@ Error ScreenActuator::actuate(RequestedValueProviders providers) {
 			}
 
 			if(satified) {
-				all_screens[screenCount] = new Screen(u8g2, desc.create());
+				all_screens[screenCount] = new Screen(&u8g2, desc.create());
 				screenCount++;
 			}
 		}
@@ -129,28 +122,28 @@ Error ScreenActuator::actuate(RequestedValueProviders providers) {
 		memcpy(screens, all_screens, sizeof(Screen *) * screenCount);
 	}
 
-	u8g2->clearBuffer();
+	u8g2.clearBuffer();
 
 	if(screenCount > 0) {
 		screens[0]->draw(providers);
 
-		u8g2->setCursor(0, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-		u8g2->print("<");
+		u8g2.setCursor(0, 48 - u8g2.getMaxCharHeight() + u8g2.getAscent());
+		u8g2.print("<");
 
 		if(screens[0]->title) {
-			u8g2->setCursor(32 - u8g2->getStrWidth(screens[0]->title) / 2, 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-			u8g2->print(screens[0]->title);
+			u8g2.setCursor(32 - u8g2.getStrWidth(screens[0]->title) / 2, 48 - u8g2.getMaxCharHeight() + u8g2.getAscent());
+			u8g2.print(screens[0]->title);
 		}
 
-		u8g2->setCursor(64 - u8g2->getStrWidth(">"), 48 - u8g2->getMaxCharHeight() + u8g2->getAscent());
-		u8g2->print(">");
+		u8g2.setCursor(64 - u8g2.getStrWidth(">"), 48 - u8g2.getMaxCharHeight() + u8g2.getAscent());
+		u8g2.print(">");
 	}
 
-	u8g2->sendBuffer();
+	u8g2.sendBuffer();
 
 	if(millis() - lastDisplayInversion > 86400000) {
 		lastDisplayInversion = millis();
-		u8g2_SendF(u8g2->getU8g2(), "c", displayInverted ? 0xa6 : 0xa7);
+		u8g2_SendF(u8g2.getU8g2(), "c", displayInverted ? 0xa6 : 0xa7);
 		displayInverted = !displayInverted;
 	}
 

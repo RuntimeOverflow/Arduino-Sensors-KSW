@@ -8,9 +8,9 @@
 
 // -------- Network -------- \\;
 
-#define WIFI_SSID "EDU"
-#define SERVER_IP "10.98.20.16"
+#define MULTICAST_IP "239.255.32.16"
 #define UDP_PORT 1337
+#define SERVER_IP "10.96.30.10"
 #define HTTP_PORT 80
 
 // -------- Measurement Types -------- \\;

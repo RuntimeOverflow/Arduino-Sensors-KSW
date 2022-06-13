@@ -4,12 +4,12 @@
 
 class Network {
 private:
-	char *ssid;
+	char *ssid = nullptr;
 	char *password = nullptr;
-	// WiFiUDP udp;
+	WiFiUDP udp;
 
 	// Error sendUDPPacket(char const *address, unsigned port, char const *msg, size_t length = UINT_MAX);
-	// Error sendMulticastPacket(char const *address, unsigned port, char const *msg, size_t length = UINT_MAX);
+	Error sendMulticastPacket(char const *address, unsigned port, char const *msg, size_t length = UINT_MAX);
 
 public:
 	Network(char const *ssid, char const *password = nullptr);

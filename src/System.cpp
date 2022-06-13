@@ -3,6 +3,7 @@
 #include <WiFiUdp.h>
 
 #include "Actuator.h"
+#include "Credentials.h"
 #include "Network.h"
 #include "Scheduler.h"
 #include "Sensor.h"
@@ -24,7 +25,7 @@ static struct {
 	unsigned availableActuatorCount = 0;
 } config;
 
-Network net(WIFI_SSID);
+Network net(WIFI_SSID, WIFI_PSWD);
 
 void setup(void) {
 	// TODO: Remove timeout needed to wait for the computer to connect to serial
@@ -115,13 +116,13 @@ void setup(void) {
 unsigned lastUpdateCheck = 0;
 
 void loop(void) {
-	if((millis() / (1000 * 60 * 60)) + 1 > lastUpdateCheck) {
+	/*if((millis() / (1000 * 60 * 60)) + 1 > lastUpdateCheck) {
 		lastUpdateCheck++;
 
 		if(!net.isConnected()) net.connect();
 
 		if(net.isUpdateAvailable()) net.updateFirmware();
-	}
+	}*/
 
 	// TODO: Only read those sensors we actually need
 	for(unsigned i = 0; i < VT_INDEXED_ARRAY_COUNT; i++) {

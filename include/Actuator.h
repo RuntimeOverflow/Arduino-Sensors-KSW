@@ -39,7 +39,7 @@ public:
 
 class ScreenActuator : Actuator {
 private:
-	U8G2_SSD1306_64X48_ER_F_HW_I2C *u8g2;
+	U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2;
 	bool displayInverted = false;
 	uint32_t lastDisplayInversion = 0;
 
@@ -50,6 +50,7 @@ public:
 	static ActuatorDescriptor getDescriptor(void);
 
 	virtual ~ScreenActuator();
+	ScreenActuator() : u8g2(U8G2_R0){};
 
 	virtual Error initialize(void);
 	virtual Error actuate(RequestedValueProviders providers);
