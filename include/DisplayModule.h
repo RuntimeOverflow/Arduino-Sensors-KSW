@@ -10,7 +10,7 @@ private:
 	unsigned offsetY = 0;
 	U8G2_SSD1306_64X48_ER_F_HW_I2C *u8g2;
 	DisplayModule *displayModule;
-	char *title;
+	char title[25] = {0};
 
 	void draw(RequestedValueProviders providers);
 

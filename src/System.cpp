@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include <alloca.h>
 
 #include "Actuator.h"
 #include "Credentials.h"
@@ -19,8 +20,8 @@ DisplayModuleDescriptor (*displayModuleDescriptors[])(void) = {TemperatureDispla
 extern const unsigned DISPLAY_MODULE_COUNT = std::size(displayModuleDescriptors);
 
 static struct {
-	Sensor **sensorMap = nullptr;
-	ValueProvider<> **providerMap = nullptr;
+	Sensor *sensorMap[VT_INDEXED_ARRAY_COUNT] = {nullptr};
+	ValueProvider<> *providerMap[VT_INDEXED_ARRAY_COUNT] = {nullptr};
 	Actuator **availableActuators = nullptr;
 	unsigned availableActuatorCount = 0;
 } config;
@@ -34,12 +35,12 @@ void setup(void) {
 	Serial.begin(9600);
 	while(!Serial) {}
 
-	Serial.printf("Initializing Sensors...\n");
+	Serial.print("HI");
 
 	ValueTypeFlags requiredFlags = VT_NONE;
 	ValueTypeFlags optionalFlags = VT_NONE;
 
-	Sensor **sensors = new Sensor *[SENSOR_COUNT];
+	Sensor **sensors = (Sensor **)alloca(SENSOR_COUNT * sizeof(Sensor *));
 	for(unsigned i = 0; i < SENSOR_COUNT; i++) {
 		Sensor *sensor = sensorDescriptors[i]().create();
 
@@ -51,9 +52,7 @@ void setup(void) {
 		sensors[i] = sensor;
 	}
 
-	Serial.printf("Initializing Actuators...\n");
-
-	Actuator **actuators = new Actuator *[ACTUATOR_COUNT];
+	Actuator **actuators = (Actuator **)alloca(ACTUATOR_COUNT * sizeof(Actuator *));
 	for(unsigned i = 0; i < ACTUATOR_COUNT; i++) {
 		Actuator *actuator = actuatorDescriptors[i]().create();
 
@@ -68,15 +67,8 @@ void setup(void) {
 		optionalFlags |= actuators[i]->descriptor.getOptionalValueTypes();
 	}
 
-	Serial.printf("Required Flags: %x\n", requiredFlags);
-	Serial.printf("Optional Flags: %x\n", optionalFlags);
-
-	Serial.printf("Generating Initial Sensor Map...\n");
-
 	SensorMapGenerationOutput output = generateSensorMap(sensors, SENSOR_COUNT, requiredFlags);
 	delete[] output.unusedSensors;
-
-	Serial.printf("Evaluating Available Actuators...\n");
 
 	FilteredActuators filtered = getAvailableActuatorsForSensorMap(actuators, ACTUATOR_COUNT, output.sensorMap);
 
@@ -85,44 +77,30 @@ void setup(void) {
 
 	delete[] output.sensorMap;
 
-	Serial.printf("Generating Final Sensor Map...\n");
-
 	output = generateSensorMap(sensors, SENSOR_COUNT, filtered.requiredFlags | filtered.optionalFlags);
 
 	for(unsigned i = 0; i < output.unusedSensorsLength; i++) delete output.unusedSensors[i];
 	delete[] output.unusedSensors;
 
-	delete[] sensors;
-
-	Serial.printf("Creating Config...\n");
-
-	config.sensorMap = output.sensorMap;
+	memcpy(config.sensorMap, output.sensorMap, sizeof(config.sensorMap));
 	config.availableActuators = filtered.matchingActuators;
 	config.availableActuatorCount = filtered.matchingActuatorsCount;
 
-	Serial.printf("Filling Provider Map...\n");
-
-	config.providerMap = new ValueProvider<> *[VT_INDEXED_ARRAY_COUNT];
-
 	for(unsigned i = 0; i < VT_INDEXED_ARRAY_COUNT; i++) {
-		Serial.printf("Sensor: %u, %p\n", i, config.sensorMap[i]);
-
 		config.providerMap[i] = config.sensorMap[i] ? config.sensorMap[i]->getProviderForValueType(indexToValueType(i)) : nullptr;
-
-		Serial.printf("Provider: %u, %p\n", i, config.providerMap[i]);
 	}
 }
 
 unsigned lastUpdateCheck = 0;
 
 void loop(void) {
-	/*if((millis() / (1000 * 60 * 60)) + 1 > lastUpdateCheck) {
+	if((millis() / (1000 * 60 * 60)) + 1 > lastUpdateCheck) {
 		lastUpdateCheck++;
 
 		if(!net.isConnected()) net.connect();
 
 		if(net.isUpdateAvailable()) net.updateFirmware();
-	}*/
+	}
 
 	// TODO: Only read those sensors we actually need
 	for(unsigned i = 0; i < VT_INDEXED_ARRAY_COUNT; i++) {

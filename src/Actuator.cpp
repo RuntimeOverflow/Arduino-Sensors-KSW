@@ -205,7 +205,7 @@ Error BeepActuator::actuate(RequestedValueProviders providers) {
 }
 
 void BeepActuator::beep(uint32_t frequency, unsigned count) {
-	Ticker::callback_function_t **tickerCallback = new Ticker::callback_function_t *;
+	/*Ticker::callback_function_t **tickerCallback = new Ticker::callback_function_t *;
 	*tickerCallback = new std::function([this, tickerCallback, frequency](void) mutable {
 		analogWriteRange(256);
 		analogWriteFreq(frequency);
@@ -232,7 +232,7 @@ void BeepActuator::beep(uint32_t frequency, unsigned count) {
 		beepsLeft = count;
 
 		(**tickerCallback)();
-	}
+	}*/
 }
 
 // -------- LightActuator -------- \\;

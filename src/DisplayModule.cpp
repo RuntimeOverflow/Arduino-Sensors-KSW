@@ -4,8 +4,6 @@
 #include "Icons.h"
 
 Screen::~Screen() {
-	if(title) delete title;
-
 	if(displayModule) delete displayModule;
 }
 
@@ -14,12 +12,7 @@ void Screen::draw(RequestedValueProviders providers) {
 }
 
 void Screen::setTitle(const char *title) {
-	if(this->title) delete this->title;
-
-	unsigned len = strlen(title);
-
-	this->title = new char[len + 1];
-	memcpy(this->title, title, len + 1);
+	memcpy(this->title, title, 24);
 }
 
 unsigned Screen::getStringWidth(const char *str) {
